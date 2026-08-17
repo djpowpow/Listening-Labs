@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jazz Listening Lab | Master the Language</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bungee&family=Outfit:wght@300;400;600;800&display=swap');
+
+        :root {
+            --primary: #1E1B4B; /* Deep Midnight Blue */
+            --secondary: #F59E0B; /* Brass/Gold */
+            --accent: #581C87; /* Deep Purple */
+            --bg: #0F172A; /* Slate 900 */
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: #F8FAFC;
+            overflow-x: hidden;
+        }
+
+        h1, .game-font {
+            font-family: 'Bungee', cursive;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            height: 550px; /* Increased height for 17 categories */
+        }
+
+        .hero-gradient {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, #000000 100%);
+        }
+
+        .card-hover {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .card-hover:hover {
+            transform: scale(1.05) rotate(1deg);
+            box-shadow: 0 20px 25px -5px rgba(245, 158, 11, 0.2), 0 10px 10px -5px rgba(245, 158, 11, 0.1);
+        }
+
+        .btn-pop {
+            transition: transform 0.1s active;
+        }
+        .btn-pop:active {
+            transform: scale(0.95);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #1E293B; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 10px; }
+    </style>
+</head>
+<body class="custom-scrollbar">
+
+    <!-- Header -->
+    <header class="hero-gradient text-white py-12 px-4 shadow-2xl relative overflow-hidden border-b-4 border-amber-500">
+        <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style="background-image: radial-gradient(circle, #F59E0B 1px, transparent 1px); background-size: 30px 30px;"></div>
+        <div class="max-w-6xl mx-auto text-center relative z-10">
+            <h1 class="text-4xl md:text-7xl mb-4 tracking-tighter text-amber-500 drop-shadow-lg">Jazz Listening Lab</h1>
+            <p class="text-xl md:text-2xl font-light opacity-90 mb-8 italic">"If you want to learn to play jazz you have to listen, listen, listen."</p>
+            
+            <div class="flex flex-wrap justify-center gap-4">
+                <div class="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-amber-500/30">
+                    <span class="block text-3xl font-bold text-amber-400" id="totalHeroCount">0</span>
+                    <span class="text-xs uppercase tracking-widest font-bold text-slate-300">Jazz Giants</span>
+                </div>
+                <div class="bg-black/40 backdrop-blur-md px-6 py-3 rounded-2xl border border-amber-500/30">
+                    <span class="block text-3xl font-bold text-amber-400">17</span>
+                    <span class="text-xs uppercase tracking-widest font-bold text-slate-300">Categories</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-12">
+        
+        <!-- Dashboard -->
+        <section class="mb-20">
+            <div class="bg-slate-800 rounded-3xl p-8 shadow-xl border-4 border-slate-700">
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-amber-500 mb-2">The Roster Breakdown</h2>
+                    <p class="text-slate-300">See how many heavy hitters are waiting for you in each section.</p>
+                </div>
+                <div class="chart-container">
+                    <canvas id="heroChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spotlight -->
+        <section class="mb-20 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-amber-500 rounded-[3rem] p-8 md:p-12 shadow-2xl text-amber-950">
+            <div>
+                <h2 class="text-4xl font-black mb-4 uppercase tracking-tight">The Woodshed:</h2>
+                <p class="text-xl mb-6 font-medium">To speak the language, you have to hear it. Your assignment today is to check out this legend.</p>
+                <div class="flex items-center gap-4">
+                    <button onclick="refreshSpotlight()" class="bg-slate-900 text-amber-500 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-slate-800 transition-colors btn-pop">Get A New Player</button>
+                </div>
+            </div>
+            <div id="spotlightContainer" class="bg-amber-50 rounded-2xl p-8 text-center border-b-8 border-amber-300 shadow-inner">
+                <span id="spotCat" class="text-xs font-black uppercase tracking-widest bg-amber-200 text-amber-800 px-3 py-1 rounded-full">Digging through the crates...</span>
+                <h3 id="spotName" class="text-4xl font-black my-4 text-amber-900">...</h3>
+                <div class="flex justify-center gap-3">
+                    <a id="spotListen" href="#" target="_blank" class="bg-slate-900 text-white px-6 py-2 rounded-xl font-bold hover:bg-slate-800 transition-colors">Listen Now</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Explorer -->
+        <section class="space-y-8">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h2 class="text-4xl font-black text-amber-500 uppercase italic">Artist Explorer</h2>
+                    <p class="text-slate-400">Select an instrument to see the masters.</p>
+                </div>
+                <div class="relative">
+                    <input type="text" id="heroSearch" placeholder="Search a name..." class="w-full md:w-80 px-6 py-4 rounded-2xl border-4 border-slate-700 bg-slate-800 text-white focus:border-amber-500 focus:outline-none text-lg shadow-sm">
+                </div>
+            </div>
+
+            <!-- Filter Chips -->
+            <div id="filterZone" class="flex flex-wrap gap-2 pb-4">
+                <button onclick="applyFilter('All')" class="filter-chip active-chip bg-amber-500 text-slate-900 px-5 py-2 rounded-full font-bold text-sm shadow-md transition-all hover:scale-105">All Artists</button>
+                <!-- JS Buttons go here -->
+            </div>
+
+            <!-- The Grid -->
+            <div id="heroGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-h-[400px]">
+                <!-- JS Cards go here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="noResults" class="hidden text-center py-20">
+                <div class="text-6xl mb-4">🎷</div>
+                <h3 class="text-2xl font-bold text-slate-400">Silence. Try another search.</h3>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-black text-slate-400 py-16 mt-20 border-t border-slate-800">
+        <div class="max-w-4xl mx-auto px-4 text-center">
+            <div class="game-font text-2xl text-amber-500 mb-4">Learn the Language</div>
+            <p class="mb-8 opacity-70">This guide utilizes Jamey Aebersold's historically significant listening list to help young musicians find their voice.</p>
+            <div class="h-1 w-20 bg-amber-500 mx-auto rounded-full"></div>
+        </div>
+    </footer>
+
+    <script>
+        const heroData = [
+            { category: "Trumpet", names: ["Freddie Hubbard", "Clifford Brown", "Miles Davis", "Dizzy Gillespie", "Woody Shaw", "Lee Morgan", "Blue Mitchell", "Clark Terry", "Kenny Dorham", "Roy Eldridge", "Don Cherry", "Fats Navarro", "Johnny Coles", "Chet Baker", "Virgil Jones", "John McNeil", "Tom Harrell", "Wynton Marsalis", "Terumaso Hino", "Wallace Roney", "Phillip Harper", "Scott Wendholt", "Roy Hargrove", "Bobby Shew", "Kevin Dean", "Art Farmer", "Tim Hagens", "Barry Ries", "Harry Edison", "Buck Clayton", "Booker Little", "Thad Jones", "Nat Adderley", "John Swana", "Nicholas Payton", "Kenny Wheeler", "Joe Magnarelli"] },
+            { category: "Alto Sax", names: ["Charlie Parker", "Sonny Stitt", "Lou Donaldson", "Phil Woods", "Cannonball Adderley", "Charlie Mariano", "Lee Konitz", "Paul Desmond", "Jackie McLean", "Ornette Coleman", "Roscoe Mitchell", "Eric Dolphy", "Herb Geller", "Art Pepper", "Lennie Niehaus", "Bud Shank", "Lanny Morgan", "Richie Cole", "Eric Kloss", "Bunky Green", "Bobby Watson", "Kenny Garrett", "Greg Osby", "Frank Morgan", "John Jenkins", "Jim Snidero", "Paquito D'Rivera", "James Spaulding", "Gary Bartz", "Arthur Blythe", "Steve Coleman", "Steve Wilson", "Craig Bailey", "Jimmy Greene"] },
+            { category: "Tenor Sax", names: ["Lester Young", "Walt Weiskopf", "Coleman Hawkins", "Stan Getz", "John Coltrane", "Sonny Rollins", "Gene Ammons", "Joe Henderson", "Wayne Shorter", "George Coleman", "Harold Land", "Azar Lawrence", "Dewey Redman", "Steve Grossman", "John Klemmer", "Dave Liebman", "Pharoah Sanders", "Ben Webster", "Benny Golson", "Dexter Gordon", "Wayne Marsh", "Zoot Sims", "Charles Lloyd", "Hank Mobley", "Bob Berg", "Billy Pierce", "Joe Farrell", "Mike Brecker", "Archie Shepp", "Bud Freeman", "Von Freeman", "Chico Freeman", "Clifford Jordon", "Rick Margitza", "Branford Marsalis", "Larry Schneider", "Bill Evans", "Joe Lovano", "Eric Alexander", "James Moody", "Don Braden", "Joshua Redman", "Gary Campbell", "Ralph Lalama", "Illinois Jacquet", "Paul Gonsalves", "Eddie “Lockjaw” Davis", "Johnny Griffin", "Stan Turrentine", "George Adams", "Chris Potter", "George Garzone", "Jerry Bergonzi", "Benny Wallace", "Bob Mintzer"] },
+            { category: "Baritone Sax", names: ["Gerry Mulligan", "Pepper Adams", "Harry Carney", "Sahib Shihab", "Serge Chaloff", "Leo Parker", "Charles Davis", "Pat Patrick", "Ronnie Cuber", "Nick Brignola", "Gary Smulyan"] },
+            { category: "Trombone", names: ["Milt Bernhardt", "Jimmy Cleveland", "Jack Teagarden", "Bill Harris", "Phil Wilson", "J.J. Johnson", "Kai Winding", "Frank Rosolino", "Carl Fontana", "Curtis Fuller", "Grachan Moncur", "Garnett Brown", "Bill Watrous", "Roswell Rudd", "Steve Turre", "Robin Eubanks", "Hal Crook", "Urbie Green", "Conrad Herwig", "John Fedchock", "Ray Anderson", "Steve Davis"] },
+            { category: "Flute", names: ["Hubert Laws", "James Moody", "Herbie Mann", "Frank Wess", "Jeremy Steig", "Roland Kirk", "Yusef Lateef", "David Liebman", "Eric Dolphy", "Joe Farrell"] },
+            { category: "Clarinet", names: ["Benny Goodman", "Artie Shaw", "Tony Scott", "Buddy DeFranco", "Woody Herman", "Pee Wee Russell", "Jimmy Guiffre", "Eric Dolphy", "Russell Procope", "Eddie Daniels", "Paquito D'Rivera", "Phil Woods", "Art Pepper", "John Carter"] },
+            { category: "Guitar", names: ["Charlie Christian", "Django Reinhardt", "Wes Montgomery", "Kenny Burrell", "Barney Kessel", "Herb Ellis", "Joe Pass", "Jim Hall", "Tal Farlow", "Attila Zoller", "Pat Martino", "Mick Goodrick", "Larry Coryell", "John McLaughlin", "Grant Green", "George Benson", "Jerry Hahn", "Jimmy Raney", "Doug Raney", "Emily Remler", "Earl Klugh", "Peter Bernstein", "Steve Erquiaga", "Peter Leich", "Vic Juris", "Joshua Breakstone", "Chris Flory", "Joe Cohn", "Scott Henderson", "Dave Cliff", "Howard Alden", "Pat Metheny", "Dave Stryker", "John Scofield", "Bill Frisell", "Charlie Hunter", "Mike Stern"] },
+            { category: "Piano", names: ["Bill Evans", "Chick Corea", "Herbie Hancock", "Oscar Peterson", "Lennie Tristano", "Mulgrew Miller", "James Williams", "Mary Lou Williams", "Thelonius Monk", "Hampton Hawes", "Roland Hanna", "Al Haig", "Art Tatum", "Joe Zawinul", "Victor Feldman", "McCoy Tyner", "Keith Jarrett", "Paul Bley", "Wynton Kelly", "Red Garland", "George Cables", "George Duke", "Denny Zeitlin", "Bud Powell", "Phineas Newborn Jr.", "Ahmad Jamal", "Kenny Drew", "Tommy Flanagan", "Horace Silver", "Kenny Barron", "John Lewis", "Michel Petrucciani", "Ronnie Mathews", "Makoto Ozone", "Michel Camilo", "Cedar Walton", "Hal Galper", "Larry Goldings", "Benny Green", "Lynne Arriale", "Mike LeDonne", "Dan Haerle", "Mark Levine", "Dave Brubeck", "Andy LaVerne", "Harry Pickens", "Kenny Werner", "Erroll Garner", "Hank Jones", "Ray Bryant", "Bobby Timmons", "Harold Mabern", "Andrew Hill", "Geri Allen", "Joey Calderazzo", "Danilo Perez", "Brad Meldhau", "Jacky Terrasson", "Gonzalo Rubalcaba", "Geoff Keezer", "Bruce Barth"] },
+            { category: "Bass", names: ["Ray Brown", "Scott LaFaro", "Oscar Pettiford", "Charlie Mingus", "Paul Chambers", "Richard Davis", "Ron Carter", "Rufus Reid", "Eddie Gomez", "Monk Montgomery", "Chuck Rainey", "Miroslav Vitous", "George Mraz", "Stanley Clarke", "Bob Cranshaw", "Jimmy Garrison", "Percy Heath", "Steve Swallow", "Buster Williams", "Cecil McBee", "Jimmy Blanton", "Red Mitchell", "Mike Moore", "Sam Jones", "Israel Crobsy", "Jaco Pastorius", "Milt Hinton", "Slam Stewart", "George Duvivier", "Todd Coolman", "Larry Grenadier", "John Patitucci", "Lynn Seaton", "Bill Moring", "Denis Irwin", "John Goldsby", "Kenny Washington", "Peter Washington", "Christian McBride", "Bob Hurst", "Charles Fambrough"] },
+            { category: "Drums", names: ["Elvin Jones", "Max Roach", "Tony Williams", "Philly Joe Jones", "Kenny Clarke", "Art Blakey", "Connie Kay", "Jack DeJohnette", "Roy Haynes", "Paul Motian", "Billy Higgins", "Billy Cobham", "Louis Bellson", "Buddy Rich", "Grady Tate", "Micky Roker", "Ed Blackwell", "Bobby Moses", "Joe Chambers", "Alphonse Mouzon", "Shelly Manne", "Stan Levy", "Danny Richmond", "Billy Hart", "Lenny White", "Al Foster", "Ed Soph", "Terri Lyne Carrington", "Steve Davis", "Peter Washington", "Bill Stewart", "Billy Drummond", "Art Taylor", "Jimmy Cobb", "Tootie Heath", "Roger Humphries", "Roy Brooks", "Idris Muhammed", "Kenny Washington", "Jeff “Tain” Watts", "Marvine “Smitty” Smith", "Ralph Peterson", "Joey Baron", "Dave Weckl", "Brian Blade", "Joe Farnsworth", "Adam Nussbaum", "Tony Reedus"] },
+            { category: "Vibes", names: ["Milt Jackson", "Gary Burton", "Dave Friedman", "David Samuels", "Roy Ayers", "Lynn Blessing", "Lionel Hampton", "Red Norvo", "Bobby Hutcherson", "Steve Nelson", "Cal Tjader", "Terry Gibbs", "Dave Pike", "Jay Hoggard", "Stephen Harris", "Joe Locke"] },
+            { category: "Organ", names: ["Jimmy Smith", "Larry Young", "Jack McDuff", "Richard \"Groove\" Holmes", "Jimmy McGriff", "John Patton", "Hank Marr", "Larry Goldings", "Mike Ladonne", "Charles Earland", "Joey DeFrancesco", "Barbara Dennerlein"] },
+            { category: "Big Bands", names: ["Duke Ellington", "Count Basie", "Woody Herman", "Stan Kenton", "Buddy Rich", "Don Ellis", "Gerald Wilson", "Thad Jones-Mel Lewis", "Bill Watrous", "Francy Boland", "Louis Bellson", "Gil Evans", "Rob McConnell", "Maynard Ferguson", "Bob Mintzer", "Airmen Of Note", "Bill Holman", "Bob Florence", "Dizzy Gillespie", "Charles Mingus", "George Russell", "Maria Schneider", "Sun Ra", "Toshiko Akiyoshi", "Lew Tabackin", "Mingus Dynasty Big Band", "Conrad Herwig’s Latin Big Band", "Randy Weston", "Tito Puente", "Eddie Palmieri", "Carla Bley", "Monday Night Vanguard Orchestra", "Wynton Marsalis"] },
+            { category: "Vocalists", names: ["Jon Lucien", "Roy Kral", "Frank Sinatra", "Mel Torme", "Lou Rawles", "Ray Charles", "Mose Allison", "Billy Eckstine", "Leon Thomas", "Grady Tate", "Joe Williams", "Sarah Vaughn", "Carmen McCrae", "Peggy Lee", "Rosemary Clooney", "Billie Holiday", "Ella Fitzgerald", "Jackie Cain", "Dakota Staton", "Johnny Hartman", "Chris Connor", "June Christy", "Anita O'Day", "Betty Carter", "Chet Baker", "Dinah Washington", "Eddie Jefferson", "Diana Krall", "Kevin Mahogany"] },
+            { category: "Scat Singers", names: ["Clark Terry", "Denis DiBlasio", "Chet Baker", "Louis Armstrong", "Dizzy Gillespie", "Ella Fitzgerald"] },
+            { category: "Violin", names: ["Joe Venuti", "Stuff Smith", "Ray Nance", "Jean-Luc Ponty", "Stephane Grappelli", "Michael White", "Jerry Goodman", "John Blake", "Randy Sabien", "Fiddler Williams", "Joe Kennedy Jr.", "Darol Anger"] }
+        ];
+
+        let activeFilter = 'All';
+        let searchQuery = '';
+        let chart;
+
+        function init() {
+            renderFilterChips();
+            renderGrid();
+            renderChart();
+            refreshSpotlight();
+            
+            let count = 0;
+            heroData.forEach(c => count += c.names.length);
+            document.getElementById('totalHeroCount').innerText = count;
+
+            document.getElementById('heroSearch').addEventListener('input', (e) => {
+                searchQuery = e.target.value.toLowerCase();
+                renderGrid();
+            });
+        }
+
+        function renderFilterChips() {
+            const container = document.getElementById('filterZone');
+            heroData.forEach(item => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-chip bg-slate-800 text-slate-300 px-5 py-2 rounded-full font-bold text-sm shadow-sm border border-slate-700 transition-all hover:bg-amber-500 hover:text-slate-900';
+                btn.textContent = item.category;
+                btn.onclick = () => applyFilter(item.category);
+                container.appendChild(btn);
+            });
+        }
+
+        function applyFilter(cat) {
+            activeFilter = cat;
+            document.querySelectorAll('.filter-chip').forEach(btn => {
+                if(btn.textContent === cat || (cat === 'All' && btn.textContent === 'All Artists')) {
+                    btn.classList.add('bg-amber-500', 'text-slate-900', 'shadow-md');
+                    btn.classList.remove('bg-slate-800', 'text-slate-300');
+                } else {
+                    btn.classList.remove('bg-amber-500', 'text-slate-900', 'shadow-md');
+                    btn.classList.add('bg-slate-800', 'text-slate-300');
+                }
+            });
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('heroGrid');
+            const empty = document.getElementById('noResults');
+            grid.innerHTML = '';
+            
+            let flattened = [];
+            heroData.forEach(cat => {
+                if(activeFilter === 'All' || activeFilter === cat.category) {
+                    cat.names.forEach(name => flattened.push({name, category: cat.category}));
+                }
+            });
+
+            if(searchQuery) {
+                flattened = flattened.filter(h => h.name.toLowerCase().includes(searchQuery));
+            }
+
+            if(flattened.length === 0) {
+                empty.classList.remove('hidden');
+            } else {
+                empty.classList.add('hidden');
+                flattened.forEach(hero => {
+                    const card = document.createElement('div');
+                    card.className = 'card-hover bg-slate-800 p-6 rounded-3xl shadow-sm border border-slate-700 flex flex-col justify-between';
+                    
+                    const youtube = `https://www.youtube.com/results?search_query=${encodeURIComponent(hero.name + ' ' + hero.category + ' jazz')}`;
+                    
+                    card.innerHTML = `
+                        <div>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded-md">${hero.category}</span>
+                            <h3 class="text-xl font-extrabold text-white mt-3 mb-6 leading-tight">${hero.name}</h3>
+                        </div>
+                        <div class="space-y-2">
+                            <a href="${youtube}" target="_blank" class="block w-full text-center bg-amber-500 text-slate-900 text-xs font-black py-3 rounded-xl uppercase tracking-tighter hover:bg-amber-400 btn-pop">Watch Now 🎵</a>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('heroChart').getContext('2d');
+            const labels = heroData.map(d => d.category);
+            const counts = heroData.map(d => d.names.length);
+
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Artist Count',
+                        data: counts,
+                        backgroundColor: '#F59E0B',
+                        borderRadius: 6,
+                        borderSkipped: false
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { 
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: { display: false, grid: { display: false } },
+                        y: { 
+                            grid: { display: false },
+                            ticks: { font: { family: 'Outfit', weight: 'bold', size: 12 }, color: '#94A3B8' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshSpotlight() {
+            const all = [];
+            heroData.forEach(c => c.names.forEach(n => all.push({name: n, cat: c.category})));
+            const pick = all[Math.floor(Math.random() * all.length)];
+            
+            const spotName = document.getElementById('spotName');
+            const spotCat = document.getElementById('spotCat');
+            const spotBtn = document.getElementById('spotListen');
+
+            spotName.style.opacity = 0;
+            setTimeout(() => {
+                spotName.textContent = pick.name;
+                spotCat.textContent = pick.cat;
+                spotBtn.href = `https://www.youtube.com/results?search_query=${encodeURIComponent(pick.name + ' ' + pick.cat + ' jazz')}`;
+                spotName.style.opacity = 1;
+            }, 200);
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
